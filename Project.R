@@ -5,6 +5,20 @@ library(stringr)
 library(RSelenium)
 
 
+rD <- rsDriver(browser="firefox", port=4545L, verbose=F)
+remDr <- rD[["client"]]
+
+remDr$navigate("https://opensea.io/collection/degenerate-regenerate")
+for(i in 1:100){
+  remDr$executeScript(paste("scroll(0,",i*10000,");"))
+  Sys.sleep(3)
+}
+
+page_source<-remDr$getPageSource()
+
+html(page_source[[1]]) %>% html_nodes(".gjwKJf") %>%
+  html_text()
+
 #load Pages
 nft_page <- read_html("https://opensea.io/collection/degenerate-regenerate")
 single_nft_page <- read_html("https://opensea.io/assets/0x7828c811636ccf051993c1ec3157b0b732e55b23/3182")
