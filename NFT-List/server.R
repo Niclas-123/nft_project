@@ -6,6 +6,14 @@ shinyServer(function(input, output) {
             filter(collection == input$collection)
     })
     
+    nfts_reac <- reactive({
+        nfts %>% 
+            filter(collection == input$collection) %>% 
+            select(-Link, -id, -Favourites)
+        
+    })
+    
+    
     output$info_floorprice <- renderInfoBox({
         data <- packages_reac()
         infoBox(
@@ -14,6 +22,22 @@ shinyServer(function(input, output) {
             icon = icon("list"),
             color = "purple",
             fill = TRUE
+        )
+    })
+    
+    output$avg_price <- renderInfoBox({
+        data <- nfts_reac()
+        infoBox(
+            "avg_price",
+            paste0("Der durchschnittspreis in USD ist ", mean(data$Price_in_dollar, na.rm = TRUE))
+        )
+    })
+    
+    output$avg_likes <- renderInfoBox({
+        data <- nfts_reac()
+        infoBox(
+            "avg_likes",
+            paste0("Die durchschnittliche Anzahl an Likes ist ", mean(data$Likes, na.rm = TRUE))
         )
     })
     
@@ -50,5 +74,10 @@ shinyServer(function(input, output) {
             fill = TRUE
         )
     })
+    
+    
 
+    output$table <- renderTable(nfts_reac())
+        
 })
+
