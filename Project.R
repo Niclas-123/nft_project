@@ -5,16 +5,16 @@ library(stringr)
 library(RSelenium)
 
 #open Selenium Browser
-rD <- rsDriver(browser="firefox", port=4547L, verbose=F)
+rD <- rsDriver(browser="firefox", port=4548L, verbose=F)
 remDr <- rD[["client"]]
 
 #rD[["server"]]$stop()
 
 list_of_collections <- c(
-  "https://opensea.io/collection/deafbeef",
- "https://opensea.io/collection/rekt-news-hacks-hopium",
- "https://opensea.io/collection/illuvium",
- "https://opensea.io/collection/pop-wonder-world"
+  "deafbeef",
+  "rekt-news-hacks-hopium",
+  "illuvium",
+  "pop-wonder-world"
 )
 
 
@@ -58,8 +58,9 @@ get_single_nft <- function(link){
   return(single_nft)
 }
 
-get_list_of_nfts <- function(collection_link, remDr) {
+get_list_of_nfts <- function(collection, remDr) {
   cat("initialisiere Server\n")
+  collection_link <- paste0("https://opensea.io/collection/", collection)
   remDr$navigate(collection_link)
   page_source <- remDr$getPageSource()    
   nft_page <- read_html(page_source[[1]])
@@ -72,7 +73,8 @@ get_list_of_nfts <- function(collection_link, remDr) {
       items = K_in_number(number_of_items[1]),
       owners = K_in_number(number_of_items[2]),
       floor_price = number_of_items[3],
-      volume_traded = number_of_items[4]
+      volume_traded = number_of_items[4],
+      collection = collection
     )
   
     #click button for small NFT view
@@ -125,7 +127,7 @@ get_list_of_nfts <- function(collection_link, remDr) {
   all_nfts <- map_df(links, get_single_nft)
   
   cat("Füge Listen zusammen\n")
-  ultimate_nft_list <- full_join(nfts_package, all_nfts, by = "Link") %>% distinct()
+  ultimate_nft_list <- full_join(nfts_package, all_nfts, by = "Link") %>% distinct() %>% mutate(collection = collection)
   
   cat("Fertig\n")
   return(list(package = packages, nfts = ultimate_nft_list, a = nfts_package, b = all_nfts))
@@ -133,8 +135,11 @@ get_list_of_nfts <- function(collection_link, remDr) {
 
 x <- get_list_of_nfts(list_of_collections[2], remDr = remDr)
 
-data <- map(list_of_collections, safely(get_list_of_nfts))
+data <- map(list_of_collections, safely(get_list_of_nfts), remDr = remDr)
 
+dat <- map(data, "result")
+nfts <- map_df(dat, "nfts")
+packages <- map_df(dat, "package")
 
-# single_nft <- get_single_nft(links[1])
-# all_nfts <- map_df(links, get_single_nft)
+write_csv(packages, "packages.csv")
+write_csv(nfts, "nfts.csv")
