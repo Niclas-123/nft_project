@@ -41,6 +41,13 @@ shinyServer(function(input, output) {
         )
     })
     
+    output$like_price_cor <- renderInfoBox({
+        data <- nfts_reac()
+        infoBox(
+            "lp_cor", paste0("Der Korrelationskoeffizient ist ", 
+                   cor(data$Likes, data$Price_in_dollar, use="complete.obs")))
+    })
+    
     output$info_volume_traded <- renderInfoBox({
         data <- packages_reac()
         infoBox(

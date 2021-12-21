@@ -47,6 +47,9 @@ body <-  dashboardBody(
                 infoBoxOutput("avg_likes")
             ),
             fluidRow(
+                infoBoxOutput("like_price_cor")
+            ),
+            fluidRow(
                 tableOutput('table')
             )
         )
